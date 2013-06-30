@@ -113,20 +113,26 @@ Tesco.prototype.findProductByBarcode = function(sessionKey, barcode, next) {
 					json.Products.length) {
 
 					var tescoProduct = _.first(json.Products);
+
+					console.dir(tescoProduct);
 					
 					product = {
 						eanbarcode: tescoProduct.EANBarcode,
 						name: tescoProduct.Name,
-						price: tescoProduct.Price
+						price: tescoProduct.Price,
+						imageUrl: tescoProduct.ImagePath
 					};
 
 				} else {
+					var statusCode = json.StatusCode || -3;
+					var narrative = json.StatusInfo || "no further details";
+
 					console.dir(json);
 
 					nextError = {
 						errorCode: -3,
 						narrative: util.format(
-							"Request failed with status code %d.", json.StatusCode || -3)
+							"Request failed with status code %d: %s.", statusCode, narrative)
 					};
 				}
 			}
