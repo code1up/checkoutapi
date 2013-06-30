@@ -1,17 +1,53 @@
-var request = require("request");
 var qs = require("qs");
+var request = require("request");
+var _ = require("underscore");
+var util = require("util");
 
 var ENDPOINT = "https://secure.techfortesco.com/groceryapi_b1/restservice.aspx";
+
 var LOGIN_COMMAND = "LOGIN";
+var PRODUCT_SEARCH_COMMAND = "PRODUCTSEARCH";
 
 var Tesco = function(developerKey, applicationKey) {
 	this.developerKey = developerKey;
 	this.applicationKey = applicationKey;
+};
 
-	this.sessionKey = null;
+Tesco.prototype.handleError = function(error, response, next) {
+	var nextError = null;
+
+	if (error) {
+		console.dir(error);
+
+		nextError = {
+			errorCode: -1,
+			narrative: "An unexpected error occurred."
+		};
+	}
+
+	if (response && response.statusCode) {
+		if (response.statusCode !== 200) {
+			console.dir(response);
+
+			nextError = {
+				errorCode: response.statusCode,
+				narrative: util.format(
+					"HTTP request failed with status code %d.", response.statusCode)
+			};
+		}
+	} else {
+		nextError = {
+			errorCode: -2,
+			narrative: "An unexpected error occurred, no further details."
+		};		
+	}
+
+	next(nextError);
 };
 
 Tesco.prototype.login = function(email, password, next) {
+	var self = this;
+
 	var options = {
 		url: ENDPOINT,
 		qs: {
@@ -19,40 +55,83 @@ Tesco.prototype.login = function(email, password, next) {
 			developerKey: this.developerKey,
 			applicationKey: this.applicationKey,
 			email: email,
-			password: password,
+			password: password
 		},
 		json: true
 	};
 
-	console.log(options);
+	request.get(options, function(error, response, body) {
+		self.handleError(error, response, function(nextError) {
+			var session = null;
 
-	this.sessionKey = null;
+			if (nextError) {
+				console.dir(nextError);
+
+			} else {
+				var json = response.body;
+
+				console.dir(json);
+
+				session = {
+					sessionKey: json.SessionKey
+				};
+			}
+
+			next(nextError, session);
+		});
+	});
+};
+
+Tesco.prototype.findProductByBarcode = function(sessionKey, barcode, next) {
+	var self = this;
+
+	var options = {
+		url: ENDPOINT,
+		qs: {
+			command: PRODUCT_SEARCH_COMMAND,
+			developerKey: this.developerKey,
+			applicationKey: this.applicationKey,
+			sessionKey: sessionKey,
+			searchText: barcode
+		},
+		json: true
+	};
 
 	request.get(options, function(error, response, body) {
-		if (error) {
-			next({
-				narrative: "Error"
-			});
+		self.handleError(error, response, function(nextError) {
+			var product = null;
 
-			return;
-		}
+			if (nextError) {
+				console.dir(nextError);
 
-		if (response.statusCode != 200) {
-			next({
-				narrative: "HTTP StatusCode"
-			});
+			} else {
+				var json = response.body;
 
-			return;
-		}
+				if (_.has(json, "StatusCode") &&
+					json.StatusCode === 0 &&
+					_.has(json, "Products") &&
+					json.Products.length) {
 
-		this.sessionKey = body.SessionKey;
+					var tescoProduct = _.first(json.Products);
+					
+					product = {
+						eanbarcode: tescoProduct.EANBarcode,
+						name: tescoProduct.Name,
+						price: tescoProduct.Price
+					};
 
-		console.dir(body);
+				} else {
+					console.dir(json);
 
-		console.log("sessionKey: %s", this.sessionKey);
+					nextError = {
+						errorCode: -3,
+						narrative: util.format(
+							"Request failed with status code %d.", json.StatusCode || -3)
+					};
+				}
+			}
 
-		next(null, {
-			sessionKey: this.sessionKey
+			next(nextError, product);
 		});
 	});
 };

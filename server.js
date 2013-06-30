@@ -11,16 +11,16 @@ var tesco = require("./tesco");
 var api = tesco.createApi("mXbIDuofamT2kU5xnVlp", "9E93CFAFAF1042D26C95");
 
 app.post("/login", function(req, res) {
-	var credentials = req.body;
+	var params = req.body;
 
-	var email = credentials.email;
-	var password = credentials.password;
+	var email = params.email;
+	var password = params.password;
 
 	res.statusCode = 200;
 
-	api.login(email, password, function(error, response) {
+	api.login(email, password, function(error, session) {
 		res.json({
-			sessionKey: response.sessionKey
+			sessionKey: session.sessionKey
 		});
 	});
 });
@@ -28,10 +28,11 @@ app.post("/login", function(req, res) {
 app.get("/products/:barcode", function(req, res) {
 	res.statusCode = 200;
 
-	tesco.login(email, password);
+	var sessionKey = req.query.sessionKey;
+	var barcode = req.params.barcode;
 
-	res.json({
-		hello: req.params.barcode
+	api.findProductByBarcode(sessionKey, barcode, function(error, product) {
+		res.json(error || product);
 	});
 });
 
