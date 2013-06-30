@@ -1,10 +1,13 @@
 {
   "name": "api",
   "version": "0.0.0",
-  "description": "ERROR: No README.md file found!",
+  "description": "checkoutapi ===========",
   "main": "server.js",
   "dependencies": {
-    "express": "~3.3.1"
+    "express": "~3.3.1",
+    "qs": "~0.6.5",
+    "request": "~2.21.0",
+    "underscore": "~1.4.4"
   },
   "devDependencies": {},
   "scripts": {
