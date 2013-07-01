@@ -148,7 +148,7 @@ Tesco.prototype.findProductByBarcode = function(sessionKey, barcode, next) {
 Tesco.prototype.addToBasket = function(product) {
 	var ref = new Firebase("https://checkoutapi.firebaseIO.com/");
 
-	ref.child(product.name, set(product);
+	ref.child(product.name).set(product);
 };
 
 exports.createApi = function(developerKey, applicationKey) {
