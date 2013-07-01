@@ -1,3 +1,4 @@
+var Firebase = require("firebase");
 var qs = require("qs");
 var request = require("request");
 var _ = require("underscore");
@@ -123,6 +124,8 @@ Tesco.prototype.findProductByBarcode = function(sessionKey, barcode, next) {
 						imageUrl: tescoProduct.ImagePath
 					};
 
+					self.addToBasket(product);
+
 				} else {
 					var statusCode = json.StatusCode || -3;
 					var narrative = json.StatusInfo || "no further details";
@@ -140,6 +143,12 @@ Tesco.prototype.findProductByBarcode = function(sessionKey, barcode, next) {
 			next(nextError, product);
 		});
 	});
+};
+
+Tesco.prototype.addToBasket = function(product) {
+	var ref = new Firebase("https://checkoutapi.firebaseIO.com/");
+
+	ref.child(product.name, set(product);
 };
 
 exports.createApi = function(developerKey, applicationKey) {
