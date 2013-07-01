@@ -146,7 +146,7 @@ Tesco.prototype.findProductByBarcode = function(sessionKey, barcode, next) {
 };
 
 Tesco.prototype.addToBasket = function(product) {
-	var ref = new Firebase("https://checkoutapi.firebaseIO.com/");
+	var ref = new Firebase("https://checkoutapi.firebaseio.com/");
 
 	ref.child(product.name).set(product);
 };

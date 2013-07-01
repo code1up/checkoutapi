@@ -1,0 +1,16 @@
+<input type="text" ng-model="search" class="search-query" placeholder="Search">
+<table>
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Price</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr ng-repeat="item in items | filter:search | orderBy:'name'">
+    <td>{{ item.name }}</td>
+    <td>{{ item.price }}</td>
+    <td><img src="{{ item.imageUrl }}"/></td>
+  </tr>
+  </tbody>
+</table>
